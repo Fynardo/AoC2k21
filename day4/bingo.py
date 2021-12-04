@@ -3,6 +3,7 @@
 
 
 from collections import namedtuple
+import concurrent.futures
 
 
 # Global Stuff
@@ -65,44 +66,49 @@ def read_bingo(case):
 WinnerMove = namedtuple('WinnerMove', ['count','score','number'])
 
 
-def play(case):
-    numbers, boards = read_bingo(case)
-    winner_moves = []
+def play_board(numbers, board):
     for i, n in enumerate(numbers):
-        for j, b in enumerate(boards):
-            b.mark(n)
-            if not b.removed and b.check():
-                b.remove()
-                winner_moves.append(WinnerMove(i, b.score() * n, n))
+        board.mark(n)
+        if board.check():
+            return WinnerMove(i, board.score() * n, n)
 
-    return winner_moves
+
+def play_bingo(case):
+    numbers, boards = read_bingo(case)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_moves = [executor.submit(play_board, numbers, b) for b in boards]
+
+    winner_moves = [wm for wm in concurrent.futures.as_completed(future_moves)]
+
+    return [wm.result() for wm in winner_moves]
 
 
 # Part 1. Execution
 print('Part 1. Testing...', end=' ')
-scores = play('test')
+scores = play_bingo('test')
 first = min(scores, key=lambda x: x.count)
 assert first.score == 4512
 print(f'Bingo Final Score: {first.score}')
 print('Done!')
 
 print('Part 1.', end=' ')
-scores = play('input')
+scores = play_bingo('input')
 first = min(scores, key=lambda x: x.count)
 print(f'Bingo Final Score: {first.score}')
 print('Done!')
 
 
-
 # Part 2
 print('Part 2. Testing...', end=' ')
-scores = play('test')
+scores = play_bingo('test')
 last = max(scores, key=lambda x: x.count)
 print(f'Bingo Final Score: {last.score}')
 print('Done!')
 
 print('Part 2.', end=' ')
-scores = play('input')
+scores = play_bingo('input')
 last = max(scores, key=lambda x: x.count)
 print(f'Last winner bingo Final Score: {last.score}')
 print('Done!')
+
