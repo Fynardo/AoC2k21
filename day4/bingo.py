@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-# Part 1 Global Stuff
+from collections import namedtuple
+
+
+# Global Stuff
 class Board:
     counter = 0
     def __init__(self, numbers, size=5):
@@ -59,51 +62,47 @@ def read_bingo(case):
         return numbers, boards
 
 
+WinnerMove = namedtuple('WinnerMove', ['count','score','number'])
+
+
 def play(case):
     numbers, boards = read_bingo(case)
-    for n in numbers:
-        for b in boards:
+    winner_moves = []
+    for i, n in enumerate(numbers):
+        for j, b in enumerate(boards):
             b.mark(n)
-            if b.check():
-                score = b.score() * n
-                print(f'Number {n} made Board {b.no} the winner!')
-                return score
+            if not b.removed and b.check():
+                b.remove()
+                winner_moves.append(WinnerMove(i, b.score() * n, n))
+
+    return winner_moves
 
 
 # Part 1. Execution
 print('Part 1. Testing...', end=' ')
-score = play('test')
-assert score == 4512
+scores = play('test')
+first = min(scores, key=lambda x: x.count)
+assert first.score == 4512
+print(f'Bingo Final Score: {first.score}')
 print('Done!')
 
 print('Part 1.', end=' ')
-score = play('input')
-print(f'Bingo Final Score: {score}')
+scores = play('input')
+first = min(scores, key=lambda x: x.count)
+print(f'Bingo Final Score: {first.score}')
 print('Done!')
 
 
 
 # Part 2
-def play(case):
-    numbers, boards = read_bingo(case)
-    for n in numbers:
-        for b in boards:
-            b.mark(n)
-            if b.check():
-                b.remove() 
-                if sum([not b.removed for b in boards]) == 0:
-                    score = b.score() * n
-                    print(f'Number {n} made Board {b.no} the last winner!')
-                    return score
-
-
 print('Part 2. Testing...', end=' ')
-score = play('test')
-print(score)
-assert score == 1924
+scores = play('test')
+last = max(scores, key=lambda x: x.count)
+print(f'Bingo Final Score: {last.score}')
 print('Done!')
 
 print('Part 2.', end=' ')
-score = play('input')
-print(f'Last winner bingo Final Score: {score}')
+scores = play('input')
+last = max(scores, key=lambda x: x.count)
+print(f'Last winner bingo Final Score: {last.score}')
 print('Done!')
