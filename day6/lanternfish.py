@@ -53,3 +53,15 @@ print(simulate(register, 80))
 print('Done!')
 
 
+# Part 2
+print('Part 2. Testing...', end=' ')
+lanternfishes = read_lantern_pop('test')
+register = create_register(lanternfishes)
+assert simulate(register, 256) == 26984457539
+print('Done!')
+
+print('Part 2.', end=' ')
+lanternfishes = read_lantern_pop('input')
+register = create_register(lanternfishes)
+print(simulate(register, 256))
+print('Done!')
