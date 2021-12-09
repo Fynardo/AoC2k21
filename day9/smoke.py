@@ -8,40 +8,46 @@ def read_basin(case):
     return floor
 
 
-def is_lower(floor, i, j, d):
-    try:
-        if d == 'N':
-            return floor[i][j] < floor[i-1][j]
-        elif d == 'E':
-            return floor[i][j] < floor[i][j+1]
-        elif d == 'S':
-            return floor[i][j] < floor[i+1][j]
-        elif d == 'W':
-            return floor[i][j] < floor[i][j-1]
-    except IndexError:
-       return True 
+directions = ['N', 'E', 'S', 'W']
+
+def peek(floor, i, j, d):
+    d_builder = {'N': [-1,0], 'E':[0,1], 'S':[1,0], 'W':[0,-1]}
+    x,y = d_builder[d]
+    return floor[i+x][j+y]
+
+
+def is_lower(floor, i, j):
+    lower = True
+    for d in directions:
+        try:
+            lower &= floor[i][j] < peek(floor, i, j, d)            
+        except IndexError:
+            lower &= True
+
+    return lower
 
 
 # Part 1
-directions = ['N', 'E', 'S', 'W']
 
 def find_lowers(case):
-    retval = 0
+    risk_level = 0
+    lower_points = []
     floor = read_basin(case)
     for i, row in enumerate(floor):
         for j, col in enumerate(row):
-            if all([is_lower(floor, i, j, d) for d in directions]):
-                retval += col + 1
-    return retval
+            if is_lower(floor, i, j):
+                risk_level += col + 1
+                lower_points.append((i,j))
+    return lower_points, risk_level
 
 
 print('Part 1. Testing...', end=' ')
-assert find_lowers('test') == 15
+assert find_lowers('test')[1] == 15
 print('Done!')
 
 
 print('Part 1.', end=' ')
-lowers = find_lowers('input')
+lowers, risk_level = find_lowers('input')
 print('Done!')
-print(f'Evaluated Risk Level: {lowers}')
+print(f'Evaluated Risk Level: {risk_level}')
 
